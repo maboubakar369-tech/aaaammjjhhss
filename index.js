@@ -97,40 +97,58 @@ app.get('/', (req, res) => {
         <div class="gallery" id="pokemonGallery">
     `;
 
-    // Boucle pour générer les cartes
+  // Dans ta boucle pokemons.forEach
     pokemons.forEach(pokemon => {
         const hpPercent = (pokemon.hp / 100) * 100;
         html += `
-            <div class="card pokemon-card" data-name="${pokemon.name.toLowerCase()}">
+            <div class="card pokemon-card" id="pokemon-${pokemon.id}" data-name="${pokemon.name.toLowerCase()}">
                 <img src="${pokemon.picture}" alt="${pokemon.name}">
-                <h3>${pokemon.name}</h3>
+                <h3 id="name-${pokemon.id}">${pokemon.name}</h3>
+                
                 <div class="hp-container">
                     <span>HP: ${pokemon.hp}</span>
                     <div class="hp-bar-bg">
                         <div class="hp-bar-fill" style="width: ${hpPercent}%;"></div>
                     </div>
                 </div>
+
+                <button onclick="editPokemon(${pokemon.id})" style="background: #3498db; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; margin-top: 10px;">
+                    Modifier
+                </button>
+
                 <div style="color: #999; font-size: 0.8em; margin-top: 10px;">#0${pokemon.id}</div>
             </div>
         `;
     });
 
-    // Script pour la recherche temps réel
+    // Dans ton bloc <script> en bas du fichier
     html += `
         </div>
         <script>
+            // Fonction pour la recherche
             function filterPokemons() {
                 const input = document.getElementById('searchInput');
                 const filter = input.value.toLowerCase();
                 const cards = document.getElementsByClassName('pokemon-card');
-
                 for (let i = 0; i < cards.length; i++) {
                     const name = cards[i].getAttribute('data-name');
-                    if (name.includes(filter)) {
-                        cards[i].style.display = "";
-                    } else {
-                        cards[i].style.display = "none";
-                    }
+                    cards[i].style.display = name.includes(filter) ? "" : "none";
+                }
+            }
+
+            // NOUVELLE FONCTION POUR MODIFIER
+            function editPokemon(id) {
+                const currentName = document.getElementById('name-' + id).innerText;
+                const newName = prompt("Modifier le nom du Pokémon :", currentName);
+                
+                if (newName != null && newName != "") {
+                    // On change le nom sur l'écran tout de suite
+                    document.getElementById('name-' + id).innerText = newName;
+                    
+                    // On met à jour l'attribut de recherche pour que ça continue de marcher
+                    document.getElementById('pokemon-' + id).setAttribute('data-name', newName.toLowerCase());
+                    
+                    alert("Nom modifié avec succès !");
                 }
             }
         </script>
