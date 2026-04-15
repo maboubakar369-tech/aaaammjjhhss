@@ -4,49 +4,118 @@ let helper = require('./helper');
 
 const app = express();
 const PORT = process.env.PORT || 3003;
+
 app.get('/', (req, res) => {
+    // On prépare le début de la page avec le CSS pour le fond
     let html = `
         <style>
-            body { font-family: sans-serif; background: #f0f0f0; padding: 20px; text-align: center; }
-            .search-container { margin-bottom: 30px; }
-            input { padding: 12px; width: 300px; border-radius: 8px; border: 2px solid #ddd; font-size: 16px; outline: none; }
-            input:focus { border-color: #ef5350; }
-            .gallery { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
-            .card { background: white; border-radius: 12px; padding: 15px; text-align: center; box-shadow: 0 4px 8px rgba(0,0,0,0.1); width: 160px; }
-            img { width: 110px; height: 110px; }
-            h3 { color: #333; margin: 10px 0 5px 0; }
-            .hp-bar-bg { background: #eee; border-radius: 10px; height: 8px; width: 100%; margin-top: 5px; }
-            .hp-bar-fill { background: #2ecc71; height: 100%; border-radius: 10px; }
+            body { 
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+                /* LE FOND : Dégradé bleu et motif discret */
+                background: linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1)), 
+                            url('https://www.transparenttextures.com/patterns/white-diamond.png'),
+                            linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                background-attachment: fixed;
+                margin: 0;
+                padding: 40px 20px; 
+                text-align: center; 
+                color: white;
+            }
+
+            .search-container { 
+                margin-bottom: 40px; 
+                background: rgba(255, 255, 255, 0.2);
+                padding: 20px;
+                border-radius: 15px;
+                display: inline-block;
+                backdrop-filter: blur(10px);
+                box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+                border: 1px solid rgba(255,255,255,0.3);
+            }
+
+            input { 
+                padding: 12px 20px; 
+                width: 300px; 
+                border-radius: 25px; 
+                border: none; 
+                font-size: 16px; 
+                outline: none;
+                box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+            }
+
+            .gallery { 
+                display: flex; 
+                flex-wrap: wrap; 
+                gap: 25px; 
+                justify-content: center; 
+            }
+
+            .card { 
+                background: white; 
+                border-radius: 20px; 
+                padding: 20px; 
+                text-align: center; 
+                box-shadow: 0 10px 20px rgba(0,0,0,0.2); 
+                width: 170px; 
+                transition: transform 0.3s ease;
+                color: #333;
+            }
+
+            .card:hover { transform: translateY(-10px); }
+
+            img { width: 120px; height: 120px; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.1)); }
+
+            h3 { margin: 15px 0 5px 0; font-size: 1.4em; text-transform: capitalize; }
+
+            .hp-container { margin: 10px 0; font-weight: bold; font-size: 0.9em; }
+
+            .hp-bar-bg { 
+                background: #eee; 
+                border-radius: 10px; 
+                height: 10px; 
+                width: 100%; 
+                margin-top: 5px; 
+                overflow: hidden; 
+                border: 1px solid #ddd;
+            }
+
+            .hp-bar-fill { 
+                background: linear-gradient(to right, #2ecc71, #27ae60); 
+                height: 100%; 
+                border-radius: 10px; 
+                transition: width 0.5s ease-in-out;
+            }
         </style>
 
-        <h1>YBoosST POKÉDEX LIVE</h1>
+        <h1 style="font-size: 3em; margin-bottom: 10px;">YBoosST POKÉDEX</h1>
+        <p style="margin-bottom: 30px; opacity: 0.9;">Attrapez-les tous depuis votre navigateur !</p>
 
         <div class="search-container">
-            <input type="text" id="searchInput" placeholder="Tapez pour filtrer..." onkeyup="filterPokemons()">
+            <input type="text" id="searchInput" placeholder="Rechercher un Pokémon..." onkeyup="filterPokemons()">
         </div>
 
         <div class="gallery" id="pokemonGallery">
     `;
 
+    // Boucle pour générer les cartes
     pokemons.forEach(pokemon => {
         const hpPercent = (pokemon.hp / 100) * 100;
-        // On ajoute la classe "pokemon-card" et on stocke le nom dans un attribut data-name
         html += `
             <div class="card pokemon-card" data-name="${pokemon.name.toLowerCase()}">
                 <img src="${pokemon.picture}" alt="${pokemon.name}">
                 <h3>${pokemon.name}</h3>
-                <div style="margin-bottom: 10px;">
-                    <small>PV: ${pokemon.hp}</small>
+                <div class="hp-container">
+                    <span>HP: ${pokemon.hp}</span>
                     <div class="hp-bar-bg">
                         <div class="hp-bar-fill" style="width: ${hpPercent}%;"></div>
                     </div>
                 </div>
-                <span style="color: #999; font-size: 0.8em;">ID: ${pokemon.id}</span>
+                <div style="color: #999; font-size: 0.8em; margin-top: 10px;">#0${pokemon.id}</div>
             </div>
         `;
     });
 
-    // (L'intelligence de la recherche live)
+    // Script pour la recherche temps réel
     html += `
         </div>
         <script>
@@ -56,11 +125,11 @@ app.get('/', (req, res) => {
                 const cards = document.getElementsByClassName('pokemon-card');
 
                 for (let i = 0; i < cards.length; i++) {
-                    const pokemonName = cards[i].getAttribute('data-name');
-                    if (pokemonName.includes(filter)) {
-                        cards[i].style.display = ""; // On affiche
+                    const name = cards[i].getAttribute('data-name');
+                    if (name.includes(filter)) {
+                        cards[i].style.display = "";
                     } else {
-                        cards[i].style.display = "none"; // On cache
+                        cards[i].style.display = "none";
                     }
                 }
             }
@@ -70,24 +139,16 @@ app.get('/', (req, res) => {
     res.send(html);
 });
 
+// Les autres routes restent les mêmes...
 app.get('/api/pokemons', (req, res) => {
-    const message = `List of ${pokemons.length} * pokemons`;
-    res.json( helper.success(message, pokemons) );    
+    res.json(helper.success(`List of ${pokemons.length} pokemons`, pokemons));
 });
 
-// CORRECTION : J'ai gardé une seule version propre de la route par ID
 app.get('/api/pokemons/:id', (req, res) => {
     const id = parseInt(req.params.id);
     const pokemon = pokemons.find(p => p.id === id);
-    
-    if (!pokemon) {
-        return res.status(404).json({ message: "Ce Pokémon n'existe pas !" });
-    }
-
-    const message = "Un Pokémon a bien été trouvé !";
-    res.json(helper.success(message, pokemon));
+    if (!pokemon) return res.status(404).json({ message: "Non trouvé" });
+    res.json(helper.success("Trouvé !", pokemon));
 });
 
-app.listen(PORT, () => {
-    console.log(`Server listening on http://localhost:${PORT}`);
-});
+app.listen(PORT, () => console.log(`Démarré sur http://localhost:${PORT}`));
